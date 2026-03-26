@@ -8,19 +8,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        /* --- NỀN VÀ BỐ CỤC CHÍNH --- */
+        /* --- NỀN VÀ BỐ CỤC CHÍNH (BAN ĐẦU) --- */
         body {
             margin: 0;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Nền Radial Gradient hồng sâu và ấm áp */
+            /* Nền Radial Gradient hồng sâu ấm áp */
             background: radial-gradient(circle at center, #fff0f5 0%, #ffe4e8 100%);
-            font-family: 'Quicksand', sans-serif; /* Font chữ chính */
+            font-family: 'Quicksand', sans-serif; 
             overflow: hidden; /* Ngăn thanh cuộn */
             position: relative;
             perspective: 1000px; /* Tạo không gian 3D cho thẻ */
+            transition: background 2s ease;
+        }
+
+        /* Nền vũ trụ tối sâu thẳm khi đến trang cuối */
+        body.space-background {
+            background: radial-gradient(circle at center, #1a0010 0%, #000000 100%);
         }
 
         /* --- CẤU TRÚC THẺ CHỮ (GLASSMORPHISM) --- */
@@ -40,13 +46,13 @@
             
             /* Cấu hình để di chuyển theo chuột */
             transform-style: preserve-3d;
-            transition: all 0.1s ease-out; /* Di chuyển mượt mà */
+            transition: all 0.1s ease-out, opacity 1s ease; 
             position: relative;
         }
 
-        /* --- CHỮ CÂU NÓI (FONT ĐẸP VÀ RỰC RỠ) --- */
+        /* --- CHỮ CÂU NÓI (FONT BAY BỔNG RỰC RỠ) --- */
         h1 {
-            /* Font chữ nghệ thuật, bay bổng */
+            /* Font chữ nghệ thuật nghệ thuật cho trang đầu */
             font-family: 'Great Vibes', cursive;
             color: #ff1a4a; /* Màu hồng đỏ rực */
             font-size: 42px;
@@ -120,6 +126,59 @@
             0% { opacity: 0; transform: translateZ(50px) translateY(15px); }
             100% { opacity: 1; transform: translateZ(50px) translateY(0); }
         }
+
+        /* --- TRẠNG THÁI CUỐI CÙNG (VŨ TRỤ VÀ TRÁI TIM HẠT LÝ TUÂN 2.0) --- */
+        #final-scene {
+            display: none; /* Ẩn mặc định */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50; /* Nằm dưới thẻ cũ nhưng trên nền vũ trụ */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        /* Canvas để vẽ hàng ngàn hạt */
+        #heartCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+
+        /* Chữ cuối cùng, nổi lên trên hệ thống hạt */
+        #final-message {
+            z-index: 100;
+            position: relative;
+            font-family: 'Great Vibes', cursive;
+            color: white;
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 10px #ff1a4a, 0 0 20px #ff1a4a;
+            max-width: 85%;
+            margin-top: 150px; /* Đẩy xuống một chút để không che mất trái tim */
+            opacity: 0.9;
+        }
+        
+        /* --- SAO TRÊN TRỜI --- */
+        #stars, #stars2, #stars3 {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 1px; height: 1px;
+            background: transparent;
+            z-index: 10;
+        }
+
+        #stars {
+            box-shadow: 200px 300px 1px white, 500px 100px 2px white, 900px 600px 1px white, ...; /* Tự động tạo bằng JS */
+        }
+        #stars::after {
+            content: " "; position: absolute; top: 2000px;
+            width: 1px; height: 1px;
+            background: transparent;
+        }
     </style>
 </head>
 <body>
@@ -133,53 +192,169 @@
         <button id="nextBtn" onclick="nextPage()">Click tiếp nha 💕</button>
     </div>
 
+    <div id="final-scene">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+        
+        <canvas id="heartCanvas"></canvas>
+        
+        <h1 id="final-message">Yêu Phương, thế giới của anh, mãi mãi! ❤️</h1>
+    </div>
+
     <script>
         // --- 1. HIỆU ỨNG THẺ DI CHUYỂN THEO CHUỘT (PARALLAX) ---
         const card = document.getElementById('card');
         document.addEventListener('mousemove', (e) => {
+            if (card.style.display === 'none') return; // Không tính toán khi thẻ đã ẩn
+
             const { clientX, clientY } = e;
             const { innerWidth, innerHeight } = window;
             
-            // Tính toán độ xoay dựa trên vị trí chuột (giới hạn góc nhỏ để mượt)
-            const rotateX = (clientY - innerHeight / 2) / 30; // Xoay quanh trục X (lên xuống)
-            const rotateY = (innerWidth / 2 - clientX) / 30; // Xoay quanh trục Y (trái phải)
+            const rotateX = (clientY - innerHeight / 2) / 30; 
+            const rotateY = (innerWidth / 2 - clientX) / 30; 
             
-            // Áp dụng độ xoay
             card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         });
 
-        // Trả thẻ về vị trí cũ khi chuột rời khỏi màn hình
         document.addEventListener('mouseleave', () => {
             card.style.transform = `rotateX(0deg) rotateY(0deg)`;
         });
 
 
-        // --- 2. HIỆU ỨNG TRÁI TIM RƠI SINH ĐỘNG ---
+        // --- 2. HIỆU ỨNG TRÁI TIM RƠI (CHỈ XUẤT HIỆN BAN ĐẦU) ---
+        let heartInterval;
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('falling-heart');
-            
-            // Đa dạng hóa các loại trái tim và lấp lánh
             const types = ['❤️', '💖', '💗', '💕', '✨'];
             heart.innerHTML = types[Math.floor(Math.random() * types.length)];
-            
             heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = Math.random() * 4 + 3 + 's'; // Tốc độ rơi khác nhau
-            heart.style.fontSize = Math.random() * 20 + 12 + 'px'; // Kích thước khác nhau
-            
-            // Random độ mờ nhẹ để tạo chiều sâu
+            heart.style.animationDuration = Math.random() * 4 + 3 + 's'; 
+            heart.style.fontSize = Math.random() * 20 + 12 + 'px'; 
             heart.style.opacity = Math.random() * 0.5 + 0.5; 
-
             document.body.appendChild(heart);
-
-            setTimeout(() => {
-                heart.remove();
-            }, 7000); 
+            setTimeout(() => heart.remove(), 7000); 
         }
-        setInterval(createHeart, 250); // Tăng mật độ một chút
+        heartInterval = setInterval(createHeart, 250); 
 
 
-        // --- 3. LOGIC CHUYỂN TRANG VÀ PHÁT NHẠC ---
+        // --- 3. HIỆU ỨNG NGÔI SAO TRÊN VŨ TRỤ (CHỈ TẠO KHI ĐẾN TRANG CUỐI) ---
+        function createStars() {
+            const starCount = 300;
+            const starData = [];
+            
+            function addStars(id, size, count) {
+                let boxSh = "";
+                for (let i = 0; i < count; i++) {
+                    boxSh += `${Math.random() * 100}vw ${Math.random() * 100}vh ${size} white, `;
+                }
+                const starElement = document.getElementById(id);
+                starElement.style.boxShadow = boxSh.slice(0, -2); // Xóa dấu phẩy cuối
+                starElement.style.width = size;
+                starElement.style.height = size;
+            }
+            addStars("stars", "1px", starCount);
+            addStars("stars2", "2px", Math.floor(starCount / 2));
+            addStars("stars3", "3px", Math.floor(starCount / 4));
+        }
+
+        // --- 4. HỆ THỐNG HẠT TRÁI TIM LÝ TUÂN 2.0 (TRANG CUỐI) ---
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d'); // --- SỬA LỖI ĐÂY: DÙNG '2d' ĐỂ VẼ 2D ---
+        let particles = [];
+        let particleCount = 2000; // Tăng lên 2000 hạt để rực rỡ hơn
+        let isFinalScene = false;
+
+        // Định kích thước canvas full screen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Công thức toán học định hình trái tim
+        function heartPoint(t) {
+            return {
+                x: 160 * Math.pow(Math.sin(t), 3),
+                y: 130 * Math.cos(t) - 50 * Math.cos(2*t) - 20 * Math.cos(3*t) - 10 * Math.cos(4*t)
+            };
+        }
+
+        // Class đại diện cho một hạt
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y; // Tọa độ tương đối quanh trung tâm (0,0)
+                // Tốc độ rung nhẹ
+                this.vx = (Math.random() - 0.5) * 0.1;
+                this.vy = (Math.random() - 0.5) * 0.1;
+                
+                // Đa dạng màu hạt
+                const colors = ['#ff1a4a', '#ff4d4d', '#ff3366'];
+                this.baseColor = colors[Math.floor(Math.random() * colors.length)];
+                this.goldColor = '#ffd700'; // Vàng lấp lánh
+                
+                this.color = (Math.random() > 0.15) ? this.baseColor : this.goldColor; // 15% vàng
+                this.size = Math.random() * 1.8 + 1; // 1-2.8px
+                this.opacity = Math.random() * 0.7 + 0.3; // Độ mờ
+                this.beatScale = 1; // Tỷ lệ nhịp đập toàn cầu
+            }
+            update() {
+                // Rung hạt nhẹ
+                this.x += this.vx; this.y += this.vy;
+                this.vx *= 0.98; this.vy *= 0.98;
+                
+                // Hiệu ứng "đập" bằng cách làm hạt rung mạnh hơn rồi chậm lại
+                if (Math.random() > 0.99) { // 1% mỗi frame hạt rung mạnh hơn
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                }
+            }
+            // Vẽ hạt với tỷ lệ đập đập toàn cầu
+            draw(beatScale, centerX, centerY) {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                // Tọa độ vẽ được nhân tỷ lệ và tịnh tiến
+                let drawX = centerX + this.x * beatScale;
+                let drawY = centerY - this.y * beatScale; // Phải lật Y vì trục Y canvas đi xuống
+                ctx.arc(drawX, drawY, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Khởi tạo hệ thống hạt
+        function initParticles() {
+            particles = []; // Xóa các hạt cũ (nếu có)
+            for (let i = 0; i < particleCount; i++) {
+                let t = Math.random() * Math.PI * 2;
+                let point = heartPoint(t);
+                particles.push(new Particle(point.x, point.y)); // Tọa độ tương đối quanh 0,0
+            }
+        }
+
+        // Vòng lặp hoạt ảnh cho hạt
+        function animateParticles() {
+            if (!isFinalScene) return;
+            
+            // Xóa canvas để vẽ lại
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Tính toán tỷ lệ nhịp đập đập toàn cầu (ví dụ: mượt mà dùng sóng cos)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const pulseSpeed = 1.2; // Nhịp đập mỗi 1.2 giây
+            const pulseMagnitude = 0.06; // Độ mạnh của nhịp đập (6%)
+            const time = Date.now() / 1000;
+            const beatScale = 1 + pulseMagnitude * Math.abs(Math.cos(time * pulseSpeed));
+
+            // Vẽ các hạt
+            particles.forEach(p => { p.update(); p.draw(beatScale, centerX, centerY); });
+            requestAnimationFrame(animateParticles);
+        }
+
+        // --- 5. LOGIC CHUYỂN TRANG VÀ KÍCH HOẠT VŨ TRỤ ---
         const messages = [
             "Xin chào Phương yêu! ❤️",
             "Em đang làm gì đấy? 🤔",
@@ -196,6 +371,7 @@
         const messageElement = document.getElementById('message');
         const buttonElement = document.getElementById('nextBtn');
         const bgMusic = document.getElementById('bgMusic');
+        const finalScene = document.getElementById('final-scene');
 
         function nextPage() {
             if (!isMusicPlaying) {
@@ -214,14 +390,34 @@
                     if (currentPage === messages.length - 1) {
                         buttonElement.innerText = "Yêu Phương nhấtt ❤️";
                     }
+                    messageElement.classList.remove('fade-out');
+                    messageElement.classList.add('fade-in');
                 } else {
-                    messageElement.innerText = "Yêu Phương cute đáng yêu của anh rất nhiều! 🌸";
-                    buttonElement.style.display = 'none'; 
+                    // --- BƯỚC ĐẾN TRANG CUỐI CÙNG ---
+                    
+                    // 1. Dừng hiệu ứng trái tim rơi
+                    clearInterval(heartInterval);
+                    
+                    // 2. Ẩn thẻ câu nói
+                    card.style.opacity = '0';
+                    setTimeout(() => { card.style.display = 'none'; }, 1000);
+
+                    // 3. Đổi nền thành vũ trụ tối
+                    document.body.classList.add('space-background');
+                    
+                    // 4. Tạo ngôi sao trên trời
+                    createStars();
+
+                    // 5. Hiện trái tim hạt Lý Tuân 2.0
+                    finalScene.style.display = 'flex';
+                    setTimeout(() => { finalScene.style.opacity = '1'; }, 100); 
+
+                    // 6. Kích hoạt hệ thống hạt
+                    isFinalScene = true;
+                    initParticles();
+                    animateParticles();
                 }
-                
-                messageElement.classList.remove('fade-out');
-                messageElement.classList.add('fade-in');
-            }, 400); // Tăng thời gian đợi một chút cho mượt
+            }, 400); 
         }
     </script>
 </body>
