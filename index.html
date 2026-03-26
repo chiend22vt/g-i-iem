@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Phương, người anh yêu nhấtt ❤️</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- NỀN VÀ BỐ CỤC CHÍNH --- */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Nền Radial Gradient hồng sâu và ấm áp */
+            background: radial-gradient(circle at center, #fff0f5 0%, #ffe4e8 100%);
+            font-family: 'Quicksand', sans-serif; /* Font chữ chính */
+            overflow: hidden; /* Ngăn thanh cuộn */
+            position: relative;
+            perspective: 1000px; /* Tạo không gian 3D cho thẻ */
+        }
+
+        /* --- CẤU TRÚC THẺ CHỮ (GLASSMORPHISM) --- */
+        .card {
+            background: rgba(255, 255, 255, 0.5); /* Nền bán trong suốt */
+            backdrop-filter: blur(15px) saturate(180%); /* Hiệu ứng kính mờ */
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            padding: 50px;
+            border-radius: 30px;
+            /* Đổ bóng sâu tạo cảm giác nổi */
+            box-shadow: 0 20px 40px rgba(255, 77, 77, 0.15);
+            border: 1px solid rgba(255, 77, 77, 0.2); /* Viền mảnh ánh hồng */
+            text-align: center;
+            max-width: 85%;
+            width: 480px;
+            z-index: 100; /* Luôn nổi lên trên */
+            
+            /* Cấu hình để di chuyển theo chuột */
+            transform-style: preserve-3d;
+            transition: all 0.1s ease-out; /* Di chuyển mượt mà */
+            position: relative;
+        }
+
+        /* --- CHỮ CÂU NÓI (FONT ĐẸP VÀ RỰC RỠ) --- */
+        h1 {
+            /* Font chữ nghệ thuật, bay bổng */
+            font-family: 'Great Vibes', cursive;
+            color: #ff1a4a; /* Màu hồng đỏ rực */
+            font-size: 42px;
+            margin-bottom: 35px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+            /* Hiệu ứng bóng chữ tỏa sáng nhẹ */
+            text-shadow: 0 0 15px rgba(255, 77, 77, 0.6);
+            /* Đẩy chữ ra phía trước một chút trong không gian 3D */
+            transform: translateZ(50px);
+        }
+
+        /* --- NÚT BẤM (SINH ĐỘNG) --- */
+        button {
+            /* Gradient màu hồng đỏ rực rỡ */
+            background: linear-gradient(135deg, #ff4d4d 0%, #ff1a4a 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            /* Đổ bóng rực rỡ */
+            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+            transition: all 0.3s ease;
+            outline: none;
+            /* Đẩy nút ra phía trước trong không gian 3D */
+            transform: translateZ(30px);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ff1a4a 0%, #ff4d4d 100%);
+            transform: translateZ(30px) scale(1.08); /* Phóng to và giữ độ nổi */
+            box-shadow: 0 8px 25px rgba(255, 77, 77, 0.6); /* Bóng đổ sáng hơn */
+        }
+
+        /* --- HIỆU ỨNG TRÁI TIM RƠI ĐA DẠNG --- */
+        .falling-heart {
+            position: absolute;
+            top: -10vh;
+            color: #ff1a4a;
+            animation: fall linear forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Hiệu ứng xoay và rơi cùng lúc */
+        @keyframes fall {
+            from {
+                transform: translateY(-10vh) rotate(0deg);
+            }
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        /* --- CHUYỂN CẢNH MƯỢT MÀ --- */
+        .fade-out { animation: fadeOut 0.4s forwards; }
+        .fade-in { animation: fadeIn 0.4s forwards; }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateZ(50px) translateY(0); }
+            100% { opacity: 0; transform: translateZ(50px) translateY(-15px); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateZ(50px) translateY(15px); }
+            100% { opacity: 1; transform: translateZ(50px) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="nhac-nen.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="card" id="card">
+        <h1 id="message">Xin chào Phương yêu! ❤️</h1>
+        <button id="nextBtn" onclick="nextPage()">Click tiếp nha 💕</button>
+    </div>
+
+    <script>
+        // --- 1. HIỆU ỨNG THẺ DI CHUYỂN THEO CHUỘT (PARALLAX) ---
+        const card = document.getElementById('card');
+        document.addEventListener('mousemove', (e) => {
+            const { clientX, clientY } = e;
+            const { innerWidth, innerHeight } = window;
+            
+            // Tính toán độ xoay dựa trên vị trí chuột (giới hạn góc nhỏ để mượt)
+            const rotateX = (clientY - innerHeight / 2) / 30; // Xoay quanh trục X (lên xuống)
+            const rotateY = (innerWidth / 2 - clientX) / 30; // Xoay quanh trục Y (trái phải)
+            
+            // Áp dụng độ xoay
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        // Trả thẻ về vị trí cũ khi chuột rời khỏi màn hình
+        document.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        });
+
+
+        // --- 2. HIỆU ỨNG TRÁI TIM RƠI SINH ĐỘNG ---
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('falling-heart');
+            
+            // Đa dạng hóa các loại trái tim và lấp lánh
+            const types = ['❤️', '💖', '💗', '💕', '✨'];
+            heart.innerHTML = types[Math.floor(Math.random() * types.length)];
+            
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 4 + 3 + 's'; // Tốc độ rơi khác nhau
+            heart.style.fontSize = Math.random() * 20 + 12 + 'px'; // Kích thước khác nhau
+            
+            // Random độ mờ nhẹ để tạo chiều sâu
+            heart.style.opacity = Math.random() * 0.5 + 0.5; 
+
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 7000); 
+        }
+        setInterval(createHeart, 250); // Tăng mật độ một chút
+
+
+        // --- 3. LOGIC CHUYỂN TRANG VÀ PHÁT NHẠC ---
+        const messages = [
+            "Xin chào Phương yêu! ❤️",
+            "Em đang làm gì đấy? 🤔",
+            "Em cóa nhớ anh hông? 🥺",
+            "Anh nhớ em lắm! 🥰",
+            "Em cóa yêu anh hông? 🤭",
+            "Anh yêu iem nhiều lắm đóa! 💖",
+            "Thoi hết gòi anh chỉ nói vậy hoi 🤫",
+            "Bé Phương ngoan nhó, anh yêu bé nhắm! 💕"
+        ];
+
+        let currentPage = 0;
+        let isMusicPlaying = false;
+        const messageElement = document.getElementById('message');
+        const buttonElement = document.getElementById('nextBtn');
+        const bgMusic = document.getElementById('bgMusic');
+
+        function nextPage() {
+            if (!isMusicPlaying) {
+                bgMusic.play();
+                isMusicPlaying = true;
+            }
+
+            currentPage++;
+            
+            messageElement.classList.remove('fade-in');
+            messageElement.classList.add('fade-out');
+
+            setTimeout(() => {
+                if (currentPage < messages.length) {
+                    messageElement.innerText = messages[currentPage];
+                    if (currentPage === messages.length - 1) {
+                        buttonElement.innerText = "Yêu Phương nhấtt ❤️";
+                    }
+                } else {
+                    messageElement.innerText = "Yêu Phương cute đáng yêu của anh rất nhiều! 🌸";
+                    buttonElement.style.display = 'none'; 
+                }
+                
+                messageElement.classList.remove('fade-out');
+                messageElement.classList.add('fade-in');
+            }, 400); // Tăng thời gian đợi một chút cho mượt
+        }
+    </script>
+</body>
+</html>
